@@ -1,4 +1,5 @@
 use clap::{Arg, command};
+use rand::Rng;
 use std::sync::Arc;
 use tokio_rusqlite::Connection;
 
@@ -23,6 +24,13 @@ fn input() -> Vec<String> {
         .collect()
 }
 
+fn gen_id() -> i64 {
+    let mut rng = rand::thread_rng();
+    let random_number: i64 = rng.gen_range(0..1_000_000);
+    println!("random number: {}", random_number);
+    random_number
+}
+
 async fn receive(db: Arc<Connection>) -> Result<(), Box<dyn std::error::Error>> {
     let input_vec = input();
 
@@ -32,7 +40,10 @@ async fn receive(db: Arc<Connection>) -> Result<(), Box<dyn std::error::Error>> 
             println!("{:?}", input_vec);
             let toget = input_vec[1..].join(" ");
             println!(" Joined: {}", toget);
-            let todo = Todo { id: 2, text: toget };
+            let todo = Todo {
+                id: gen_id(),
+                text: toget,
+            };
             insert_todo(todo.clone(), axum::Extension(db)).await;
             // i would add the database function here that would just consume the todo struct
             // i dont think it should be any harder than that?
