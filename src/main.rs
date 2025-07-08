@@ -48,12 +48,23 @@ async fn receive(db: Arc<Connection>) -> Result<(), Box<dyn std::error::Error>> 
             // i would add the database function here that would just consume the todo struct
             // i dont think it should be any harder than that?
             //
-            println!("{:?} {:?}", todo.id, todo.text);
         }
         Some("show") => {
             println!("Show todos");
             let to_print = list_todos(axum::Extension(db)).await;
-            println!("{:?}", to_print);
+
+            match to_print {
+                Ok(todos) => {
+                    for todo in todos {
+                        println!("ID {}, TExt: {}", todo.id, todo.text);
+                        // MATCH STATEMENTS ONLY AND RESULT TYPES AND OK TYPES
+                    }
+                }
+
+                Err(e) => {
+                    println!("errpr {:?}", e);
+                }
+            }
         }
 
         Some(other) => {
@@ -69,7 +80,6 @@ async fn receive(db: Arc<Connection>) -> Result<(), Box<dyn std::error::Error>> 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db = db().await?;
-
     receive(db).await.unwrap();
 
     Ok(())

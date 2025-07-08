@@ -1,6 +1,7 @@
 use axum::extract::Extension;
+use cli_table::{Cell, Style, Table, format::Justify, print_stdout};
 use std::sync::Arc;
-use tokio_rusqlite::Connection;
+use tokio_rusqlite::{Connection, Error};
 
 #[derive(Debug, Clone)]
 pub struct Todo {
@@ -42,32 +43,33 @@ pub async fn db() -> Result<Db, Box<dyn std::error::Error>> {
     Ok(Arc::new(db))
 }
 
-pub async fn list_todos(Extension(db): Extension<Db>) -> Vec<String> {
+pub async fn list_todos(Extension(db): Extension<Db>) -> Result<Vec<Todo>, Vec<String>> {
     let todo = db
         .call(|conn| {
             let mut stmt = conn.prepare("SELECT id,text FROM todos")?;
-            let rows = stmt
-                .query_map([], |row| {
-                    Ok(Todo {
-                        id: row.get(0)?,
-                        text: row.get(1)?,
-                    })
-                })?
-                .collect::<Result<Vec<_>, _>>()?;
-            Ok(rows)
+            let rows = stmt.query_map([], |row| {
+                Ok(Todo {
+                    id: row.get(0)?,
+                    text: row.get(1)?,
+                })
+            })?;
+            let todos: Result<Vec<Todo>, _> = rows.collect();
+
+            Ok(todos)
         })
         .await;
 
     match todo {
-        Ok(todo) => {
-            if todo.is_empty() {
-                vec![" people found".to_string()]
-            } else {
-                todo.into_iter()
-                    .map(|t| format!("{}: {}", t.id, t.text))
-                    .collect::<Vec<_>>()
+        Ok(todo_inner) => match todo_inner {
+            Ok(todos) => {
+                if todos.is_empty() {
+                    Err(vec![format!("no todos found")])
+                } else {
+                    Ok(todos)
+                }
             }
-        }
-        Err(e) => vec![format!("DB errror: {}", e,)],
+            Err(e) => Err(vec![format!("Databquea erro {}", e)]),
+        },
+        Err(e) => Err(vec![format!("DB errror: {}", e,)]),
     }
 }
