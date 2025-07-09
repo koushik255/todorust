@@ -1,8 +1,8 @@
 use clap::{Arg, command};
+use cli_table::{Cell, Style, Table, WithTitle, format::Justify, print_stdout};
 use rand::Rng;
 use std::sync::Arc;
 use tokio_rusqlite::Connection;
-
 mod db;
 
 use db::{Todo, db, insert_todo, list_todos};
@@ -52,13 +52,16 @@ async fn receive(db: Arc<Connection>) -> Result<(), Box<dyn std::error::Error>> 
         Some("show") => {
             println!("Show todos");
             let to_print = list_todos(axum::Extension(db)).await;
-
+            let mut todo_print: Vec<Todo> = Vec::new();
             match to_print {
                 Ok(todos) => {
                     for todo in todos {
                         println!("ID {}, TExt: {}", todo.id, todo.text);
+                        todo_print.push(todo);
+
                         // MATCH STATEMENTS ONLY AND RESULT TYPES AND OK TYPES
                     }
+                    assert!(print_stdout(todo_print.with_title()).is_ok());
                 }
 
                 Err(e) => {

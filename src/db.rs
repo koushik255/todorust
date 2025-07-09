@@ -1,11 +1,13 @@
 use axum::extract::Extension;
-use cli_table::{Cell, Style, Table, format::Justify, print_stdout};
+use cli_table::{Cell, Style, Table, WithTitle, format::Justify, print_stdout};
 use std::sync::Arc;
 use tokio_rusqlite::{Connection, Error};
 
-#[derive(Debug, Clone)]
+#[derive(Table, Debug, Clone)]
 pub struct Todo {
+    #[table(title = "ID", justify = "Justify::Right")]
     pub id: i64,
+    #[table(title = "text")]
     pub text: String,
 }
 
