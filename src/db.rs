@@ -29,6 +29,27 @@ pub async fn insert_todo(todo: Todo, Extension(db): Extension<Db>) -> String {
     }
 }
 
+// if the id is simmilar to one of ones delete is
+
+pub async fn del_todo(todoid: i64, Extension(db): Extension<Db>) -> String {
+    let id = todoid;
+
+    let delete = db
+        .call(move |conn| Ok(conn.execute("DELETE FROM todos WHERE id = ?1", [&id])?))
+        .await;
+
+    match delete {
+        Ok(rows_affect) => {
+            if rows_affect > 0 {
+                format!("Delted todo with id: {}", id)
+            } else {
+                format!("No todo found with id {}", id)
+            }
+        }
+        Err(e) => format!("DB error {}", e),
+    }
+}
+
 pub async fn db() -> Result<Db, Box<dyn std::error::Error>> {
     let db = Connection::open("my_db").await?;
     db.call(|conn| {

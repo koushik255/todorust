@@ -1,11 +1,11 @@
-use clap::{Arg, command};
+use clap::{Arg, command, parser::IdsRef};
 use cli_table::{Cell, Style, Table, WithTitle, format::Justify, print_stdout};
 use rand::Rng;
 use std::sync::Arc;
 use tokio_rusqlite::Connection;
 mod db;
 
-use db::{Todo, db, insert_todo, list_todos};
+use db::{Todo, db, del_todo, insert_todo, list_todos};
 
 fn input() -> Vec<String> {
     let matches = command!()
@@ -68,6 +68,14 @@ async fn receive(db: Arc<Connection>) -> Result<(), Box<dyn std::error::Error>> 
                     println!("errpr {:?}", e);
                 }
             }
+        }
+        Some("del") => {
+            println!("why del blud");
+            println!("{:?}", input_vec);
+            let id = input_vec[1].parse::<i64>().unwrap();
+            println!(" todo to delete is: {:?}", id);
+            del_todo(id, axum::Extension(db)).await;
+            println!("delete todo: {id}");
         }
 
         Some(other) => {
