@@ -41,7 +41,7 @@ pub async fn del_todo(todoid: i64, Extension(db): Extension<Db>) -> String {
     match delete {
         Ok(rows_affect) => {
             if rows_affect > 0 {
-                format!("Delted todo with id: {}", id)
+                format!("Deleted todo with id: {}", id)
             } else {
                 format!("No todo found with id {}", id)
             }
